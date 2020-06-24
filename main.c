@@ -30,8 +30,6 @@ struct Player p2;
 
 
 void init(){
-    initscr();
-
     getmaxyx(stdscr, rows, columns);
     rows--;
     columns--;
@@ -39,11 +37,13 @@ void init(){
     noecho();
     curs_set(0);
     box(stdscr, ACS_VLINE, ACS_HLINE);
-    char str[] = "|  Player 1: 00  |  Player 2: 00  |";
-    mvaddstr(0, 1, str);
+    attrset(A_BOLD);
+    char str[] = "   Player 1: 0  |  Player 2: 0   ";
+    mvaddstr(0, 3, str);
+    attroff(A_BOLD);
 
-//    halfdelay(1);
-    nodelay(stdscr, TRUE);
+    halfdelay(1);
+//    nodelay(stdscr, TRUE);
 
     ball.x = columns / 2;
     ball.y = rows / 2;
@@ -62,12 +62,14 @@ void init(){
 
 
 void debug(int x, int integer){
-    char buffer[] = {0, 0, 0};
-    char blank[] = {0, 0, 0};
+    char buffer[] = {0, 0};
+    char blank[] = {0, 0};
 
     sprintf(buffer, "%d", integer);
+    attrset(A_BOLD);
     mvaddstr(0, x, blank);
     mvaddstr(0, x, buffer);
+    attroff(A_BOLD);
 }
 
 
@@ -76,23 +78,17 @@ bool is_collision(){
 
     if (ball.x == 1 || ball.x == columns - 1){
         if (ball.up){
-            if (score_p1 < 99) {
+            if (score_p1 < 9) {
                 score_p1 += 1;
-            }
-            else {
-                init();
             }
         }
         else {
-            if (score_p2 < 99) {
+            if (score_p2 < 9) {
                 score_p2 += 1;
             }
-            else {
-                init();
-            }
         }
-        debug(14, score_p1);
-        debug(31, score_p2);
+        debug(16, score_p1);
+        debug(32, score_p2);
         collision = true;
     }
     else if (((ball.up && ball.x == 4) && (ball.y >= p1.y - 2 && ball.y <= p1.y + 2)) ||
