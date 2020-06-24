@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/vokamisair/Documents/dev/pong/main.c
+stdlib.h
+-
+stdio.h
+-
+curses.h
+-
+locale.h
+-
+
