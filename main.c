@@ -7,6 +7,10 @@
 
 WINDOW *mainWindow;
 
+int rows, columns;
+int score_p1 = 0;
+int score_p2 = 0;
+
 struct Ball {
     int x;
     int y;
@@ -26,64 +30,79 @@ struct Player p2;
 
 
 void init(){
-    int max_x = getmaxx(mainWindow);
-    int max_y = getmaxy(mainWindow);
+    initscr();
 
-    ball.x = max_x / 2;
-    ball.y = max_y / 2;
+    getmaxyx(stdscr, rows, columns);
+    rows--;
+    columns--;
+
+    noecho();
+    curs_set(0);
+    box(stdscr, ACS_VLINE, ACS_HLINE);
+    char str[] = "|  Player 1: 00  |  Player 2: 00  |";
+    mvaddstr(0, 1, str);
+
+//    halfdelay(1);
+    nodelay(stdscr, TRUE);
+
+    ball.x = columns / 2;
+    ball.y = rows / 2;
     ball.next_x = 0;
     ball.next_y = 0;
-    ball.up = false;
+    ball.up = true;
     ball.down = false;
 
     p1.x = 5;
-    p1.y = max_y / 2;
+    p1.y = rows / 2;
 
-    p2.x = max_x - 6;
-    p2.y = max_y / 2;
+    p2.x = columns - 6;
+    p2.y = rows / 2;
+
 }
 
 
-void debug(char title, int x, int integer){
-    char buffer[] = {'0', '0', '0'};
-    char blank[] = {'0', '0', '0'};
+void debug(int x, int integer){
+    char buffer[] = {0, 0, 0};
+    char blank[] = {0, 0, 0};
 
     sprintf(buffer, "%d", integer);
-    mvaddch(getmaxy(mainWindow) - 1, x, title);
-    mvaddstr(getmaxy(mainWindow) - 1, x + 1, blank);
-    mvaddstr(getmaxy(mainWindow) - 1, x + 1, buffer);
+    mvaddstr(0, x, blank);
+    mvaddstr(0, x, buffer);
 }
 
 
 bool is_collision(){
     bool collision = false;
-    int hello = 0;
 
-    if ((ball.down) && (ball.x == 6) && (p1.y-2 <= ball.y <= p1.y+2)){
-        hello = 1;
+    if (ball.x == 1 || ball.x == columns - 1){
+        if (ball.up){
+            if (score_p1 < 99) {
+                score_p1 += 1;
+            }
+            else {
+                init();
+            }
+        }
+        else {
+            if (score_p2 < 99) {
+                score_p2 += 1;
+            }
+            else {
+                init();
+            }
+        }
+        debug(14, score_p1);
+        debug(31, score_p2);
         collision = true;
-        debug('C', 20, 1);
+    }
+    else if (((ball.up && ball.x == 4) && (ball.y >= p1.y - 2 && ball.y <= p1.y + 2)) ||
+             ((ball.down && ball.x == 6) && (ball.y >= p1.y - 2 && ball.y <= p1.y + 2))) {
+        collision = true;
     }
 
-    else if ((ball.up) && (ball.x == (getmaxx(mainWindow) - 7)) && (p2.y - 2 <= ball.y <= p2.y + 2)){
-        hello = 2;
+    else if (((ball.down && ball.x == (columns - 5)) && (ball.y >= p2.y - 2 && ball.y <= p2.y + 2)) ||
+             ((ball.up && ball.x == (columns - 7)) && (ball.y >= p2.y - 2 && ball.y <= p2.y + 2))) {
         collision = true;
-        debug('C', 20, 2);
-    }
-
-    else if (ball.down && (ball.x == 1 || ball.y == 1)){
-        hello = 3;
-        collision = true;
-        debug('C', 20, 3);
-    }
-
-    else if (ball.up && (ball.x == getmaxx(mainWindow) - 1 || ball.y == getmaxy(mainWindow) - 1)){
-        hello = 4;
-        collision = true;
-        debug('C', 20, 4);
-    }
-    else {
-        hello = 5;
     }
 
     return collision;
@@ -98,23 +117,20 @@ void draw_ball(){
     mvaddch(ball.y, ball.x, ' ');
     ball.x = ball.up ? ball.x + 1 : ball.x - 1;
     mvaddch(ball.y, ball.x, 'o');
-    debug('X', 40, ball.x);
-    debug('Y', 44, ball.y);
+
 }
 
 
 void draw_player(struct Player *player){
     mvaddch(player->y, player->x, ACS_BLOCK);
     for (int i = 1; i <= 2; i++) {
-        if ((player->y + i) < getmaxy(mainWindow)){
+        if ((player->y + i) < rows){
             mvaddch(player->y + i, player->x, ACS_BLOCK);
         }
         if ((player->y - i) > 0) {
             mvaddch(player->y - i, player->x, ACS_BLOCK);
         }
     }
-    debug('X', 4, player->x);
-    debug('Y', 8, player->y);
 }
 
 
@@ -128,7 +144,7 @@ void move_up(struct Player *player){
 
 
 void move_down(struct Player *player){
-    if (player->y + 2 < getmaxy(mainWindow) - 2) {
+    if (player->y + 2 < rows - 1) {
         player->y += 1;
         draw_player(player);
         mvaddch(player->y - 3, player->x, ' ');
@@ -144,12 +160,6 @@ int main(void) {
     }
 
     init();
-    noecho();
-    curs_set(0);
-    box(stdscr, ACS_VLINE, ACS_HLINE);
-
-    //    halfdelay(1);
-    nodelay(stdscr, TRUE);
 
     draw_player(&p1);
     draw_player(&p2);
