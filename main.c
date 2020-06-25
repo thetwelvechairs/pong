@@ -14,10 +14,10 @@ int score_p2 = 0;
 struct Ball {
     int x;
     int y;
+    bool right;
+    bool left;
     bool up;
     bool down;
-    bool left;
-    bool right;
     bool spin;
 } ball;
 
@@ -49,10 +49,10 @@ void init(){
 
     ball.x = columns / 2;
     ball.y = rows / 2;
+    ball.right = false;
+    ball.left = false;
     ball.up = false;
     ball.down = false;
-    ball.left = false;
-    ball.right = false;
     ball.spin = false;
 
     p1.x = 6;
@@ -79,7 +79,7 @@ void debug(int x, int integer){
 void is_collision(){
     // X-axis border / goal
     if (ball.x == 1 || ball.x == columns - 1){
-        if (ball.up){
+        if (ball.right){
             if (score_p1 < 9) {
                 score_p1 += 1;
             }
@@ -89,48 +89,55 @@ void is_collision(){
                 score_p2 += 1;
             }
         }
+        beep();
         debug(16, score_p1);
         debug(32, score_p2);
 
-        ball.up = !ball.up;
-        ball.down = !ball.down;
+        ball.right = !ball.right;
+        ball.left = !ball.left;
     }
 
     // Y-axis border
     else if (ball.y == 1 || ball.y == rows - 1) {
-        ball.left = !ball.left;
-        ball.right = !ball.right;
+        ball.up = !ball.up;
+        ball.down = !ball.down;
     }
 
     // Bat corner P2
-    else if (((ball.up && ball.x == 5) || (ball.down && ball.x == 7))
+    else if (((ball.right && ball.x == 5) || (ball.left && ball.x == 7))
              && (ball.y >= p1.y - 2 && ball.y <= p1.y + 2)) {
+        ball.right = !ball.right;
+        ball.left = !ball.left;
         ball.up = !ball.up;
         ball.down = !ball.down;
         ball.spin = true;
     }
 
     // Bat middle P2
-    else if (((ball.up && ball.x == 5) || (ball.down && ball.x == 7))
+    else if (((ball.right && ball.x == 5) || (ball.left && ball.x == 7))
              && ((ball.y >= p1.y ) || (ball.y >= p1.y - 1 && ball.y <= p1.y + 1))) {
-        ball.left = false;
-        ball.right = false;
+        ball.right = !ball.right;
+        ball.left = !ball.left;
+        ball.up = false;
+        ball.down = false;
         ball.spin = false;
     }
 
     // Bat corner P1
-    else if (((ball.down && ball.x == (columns - 5)) || (ball.up && ball.x == (columns - 7)))
+    else if (((ball.left && ball.x == (columns - 5)) || (ball.right && ball.x == (columns - 7)))
              && (ball.y >= p2.y - 2 && ball.y <= p2.y + 2)) {
-        ball.up = !ball.up;
-        ball.down = !ball.down;
+        ball.right = !ball.right;
+        ball.left = !ball.left;
         ball.spin = true;
     }
 
     // Bat middle P1
-    else if (((ball.down && ball.x == (columns - 5)) || (ball.up && ball.x == (columns - 7)))
+    else if (((ball.left && ball.x == (columns - 5)) || (ball.right && ball.x == (columns - 7)))
              && ((ball.y >= p2.y ) || (ball.y >= p2.y - 1 && ball.y <= p2.y + 1))) {
-        ball.left = false;
-        ball.right = false;
+        ball.right = !ball.right;
+        ball.left = !ball.left;
+        ball.up = false;
+        ball.down = false;
         ball.spin = false;
     }
 
@@ -141,9 +148,9 @@ void draw_ball(){
     is_collision();
 
     mvaddch(ball.y, ball.x, ' ');
-    ball.x = ball.up ? ball.x + 1 : ball.x - 1;
+    ball.x = ball.right ? ball.x + 1 : ball.x - 1;
     if (ball.spin){
-        ball.y = ball.left ? ball.y + 1 : ball.y - 1;
+        ball.y = ball.up ? ball.y + 1 : ball.y - 1;
     }
     mvaddch(ball.y, ball.x, 'o');
     napms(20);
