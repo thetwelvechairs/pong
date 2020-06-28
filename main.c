@@ -10,6 +10,8 @@ WINDOW *mainWindow;
 int rows, columns;
 int score_p1 = 0;
 int score_p2 = 0;
+bool sound = true;
+
 
 struct Ball {
     int x;
@@ -19,6 +21,7 @@ struct Ball {
     bool up;
     bool down;
     bool spin;
+    bool sharp;
 } ball;
 
 struct Player {
@@ -42,8 +45,10 @@ void init(){
     char header[] = "   Player 1: 0  |  Player 2: 0   ";
     mvaddstr(0, 3, header);
     attroff(A_BOLD);
-    char footer[] = "   E[x]it   ";
-    mvaddstr(rows, columns - sizeof(footer), footer);
+    char footer1[] = "   S[o]und On/Off   ";
+    mvaddstr(rows, 3, footer1);
+    char footer2[] = "   E[x]it   ";
+    mvaddstr(rows, columns - sizeof(footer2), footer2);
 //    halfdelay(1);
     nodelay(stdscr, TRUE);
 
@@ -54,6 +59,7 @@ void init(){
     ball.up = false;
     ball.down = false;
     ball.spin = false;
+    ball.sharp = false;
 
     p1.x = 6;
     p1.y = rows / 2;
@@ -95,7 +101,9 @@ void check_collision(){
         ball.left = !ball.left;
         ball.right = !ball.right;
 
-        beep();
+        if (sound){
+            beep();
+        }
     }
 
     // X-axis border
@@ -111,12 +119,14 @@ void check_collision(){
             ball.left = !ball.left;
             ball.right = !ball.right;
             ball.spin = true;
+            ball.sharp = true;
         }
         // Bat middle
         else if ((ball.y == p1.y) || (ball.y == p1.y - 1) || (ball.y == p1.y + 1)) {
             ball.left = !ball.left;
             ball.right = !ball.right;
             ball.spin = false;
+            ball.sharp = false;
         }
     }
 
@@ -127,12 +137,14 @@ void check_collision(){
             ball.left = !ball.left;
             ball.right = !ball.right;
             ball.spin = true;
+            ball.sharp = true;
         }
         // Bat middle
         else if ((ball.y == p2.y) || (ball.y == p2.y - 1) || (ball.y == p2.y + 1)) {
             ball.left = !ball.left;
             ball.right = !ball.right;
             ball.spin = false;
+            ball.sharp = false;
         }
     }
 }
@@ -141,23 +153,36 @@ void check_collision(){
 void draw_ball(){
     check_collision();
 
-    mvaddch(ball.y, ball.x, ' ');
+    if (ball.x > 0 && ball.x < columns) {
+        mvaddch(ball.y, ball.x, ' ');
+    }
+
     ball.x = ball.right ? ball.x + 1 : ball.x - 1;
-    if (ball.spin){
+
+    if (ball.spin && ball.sharp){
+        ball.y = ball.down ? ball.y + 2 : ball.y - 1;
+    }
+    if (ball.spin && !ball.sharp){
         ball.y = ball.down ? ball.y + 1 : ball.y - 1;
+    }
+    if (ball.y > rows){
+        ball.y = rows - 1;
+    }
+    if (ball.y <= 1){
+        ball.y = 1;
     }
     mvaddch(ball.y, ball.x, 'o');
 }
 
 
 void draw_player(struct Player *player){
-    mvaddch(player->y, player->x, ACS_BLOCK);
+    mvaddch(player->y, player->x, ACS_CKBOARD);
     for (int i = 1; i <= 2; i++) {
         if ((player->y + i) < rows){
-            mvaddch(player->y + i, player->x, ACS_BLOCK);
+            mvaddch(player->y + i, player->x, ACS_CKBOARD);
         }
         if ((player->y - i) > 0) {
-            mvaddch(player->y - i, player->x, ACS_BLOCK);
+            mvaddch(player->y - i, player->x, ACS_CKBOARD);
         }
     }
 }
@@ -195,10 +220,11 @@ int main(void) {
 
     while (true){
 
-        char exit = getch();
+        char keystroke = getch();
         napms(20);
+        draw_ball();
 
-        switch (exit) {
+        switch (keystroke) {
             case 'q':
             case 'Q':
                 move_up(&p1);
@@ -215,6 +241,10 @@ int main(void) {
             case 'L':
                 move_down(&p2);
                 break;
+            case 'o':
+            case 'O':
+                sound = !sound;
+                break;
             case 'x':
             case 'X':
                 delwin(mainWindow);
@@ -224,7 +254,6 @@ int main(void) {
                 break;
         }
 
-        draw_ball();
         refresh();
     }
 }
