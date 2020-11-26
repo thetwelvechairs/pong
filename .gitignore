@@ -1,6 +1,7 @@
 /cmake-build-*
 .idea
 .DS_Store
+
 ### TextMate template
 *.tmproj
 *.tmproject

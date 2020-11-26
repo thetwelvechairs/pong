@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <curses.h>
-#include <locale.h>
+
 
 WINDOW *mainWindow;
 
@@ -12,6 +12,7 @@ int score_p1 = 0;
 int score_p2 = 0;
 bool sound = true;
 
+//struct json_object *new_obj;
 
 struct Ball {
     int x;
@@ -41,6 +42,7 @@ void init(){
     noecho();
     curs_set(0);
     box(stdscr, ACS_VLINE, ACS_HLINE);
+//    wbkgd(mainWindow, ACS_CKBOARD);
     attrset(A_BOLD);
     char header[] = "   Player 1: 0  |  Player 2: 0   ";
     mvaddstr(0, 3, header);
@@ -84,7 +86,7 @@ void update_score(int x, int integer){
 
 void check_collision(){
     // Y-axis border / goal
-    if (ball.x == 1 || ball.x == columns - 1){
+    if (ball.x == 1 || ball.x == columns-1 || ball.x == columns || ball.x == columns + 1){
         if (ball.right){
             if (score_p1 < 9) {
                 score_p1 += 1;
@@ -153,25 +155,24 @@ void check_collision(){
 void draw_ball(){
     check_collision();
 
-    if (ball.x > 0 && ball.x < columns) {
-        mvaddch(ball.y, ball.x, ' ');
-    }
+    mvaddch(ball.y, ball.x, ' ');
 
     ball.x = ball.right ? ball.x + 1 : ball.x - 1;
 
     if (ball.spin && ball.sharp){
-        ball.y = ball.down ? ball.y + 2 : ball.y - 1;
+        int angle = 1;
+        if (ball.y + 2 > rows){
+            angle = 2;
+        }
+        ball.y = ball.down ? ball.y + angle : ball.y - 1;
     }
+
     if (ball.spin && !ball.sharp){
         ball.y = ball.down ? ball.y + 1 : ball.y - 1;
     }
-    if (ball.y > rows){
-        ball.y = rows - 1;
-    }
-    if (ball.y <= 1){
-        ball.y = 1;
-    }
-    mvaddch(ball.y, ball.x, 'o');
+
+    mvaddch(ball.y, ball.x, 'O');
+    refresh();
 }
 
 
@@ -207,6 +208,8 @@ void move_down(struct Player *player){
 
 
 int main(void) {
+//    new_obj = json_tokener_parse("/* more difficult test case */ { \"glossary\": { \"title\": \"example glossary\", \"pageCount\": 100, \"GlossDiv\": { \"title\": \"S\", \"GlossList\": [ { \"ID\": \"SGML\", \"SortAs\": \"SGML\", \"GlossTerm\": \"Standard Generalized Markup Language\", \"Acronym\": \"SGML\", \"Abbrev\": \"ISO 8879:1986\", \"GlossDef\": \"A meta-markup language, used to create markup languages such as DocBook.\", \"GlossSeeAlso\": [\"GML\", \"XML\", \"markup\"] } ] } } }");
+//    printf("new_obj.to_string()=%s\n", json_object_to_json_string(new_obj));
 
     if ((mainWindow = initscr() ) == NULL ) {
         fprintf(stderr, "Error initialising ncurses.\n");
