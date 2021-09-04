@@ -2,6 +2,7 @@
 
 ## Intro
 Pong in the style of NCurses!
+![screenshot](https://github.com/twelvechairssoftware/pong/raw/main/pong.png)
 
 ## Roadmap
 
